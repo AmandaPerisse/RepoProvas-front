@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 
 export default function Form(){
 
+    const navigate = useNavigate();
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [passwordConfirm, setPasswordConfirm] = React.useState('');
@@ -13,6 +14,7 @@ export default function Form(){
     function resetFields(){
         setEmail('');
         setPassword('');
+        setPasswordConfirm('');
     }
     async function login(e){
         e.preventDefault();
@@ -22,14 +24,20 @@ export default function Form(){
                     email: email,
                     password: password
                 });
+                navigate('/');
             }
             else{
                 alert('As senhas não são iguais');
                 resetFields();
             }
         }
-        catch(e){
-            alert('Falha na criação de usuário!');
+        catch(error){
+            if (error.response.status === 409) {
+                alert("Email já cadastrado! Tente novamente")
+            }
+            else {
+                alert("Erro no sistema! Tente novamente.")
+            }
             resetFields();
         }
     }

@@ -31,7 +31,7 @@ export default function Form(){
                 setUserInfos(data.user);
                 localStorage.setItem("token", data.token)
                 localStorage.setItem("userInfos", JSON.stringify(data.user))
-                navigate('/');
+                navigate('/home');
             }
             else{
                 alert('E-mail ou senha inválidos!');
@@ -39,7 +39,7 @@ export default function Form(){
             }
         }
         catch(e){
-            alert('Falha na autenticação!');
+            alert('Usuário ou senha incorreto!');
             resetFields();
         }
     }
