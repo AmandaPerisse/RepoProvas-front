@@ -23,6 +23,8 @@ function App() {
           <Route path="/" element={<LoginPage />}></Route>
           <Route path="/sign-up" element={<SignUpPage />}></Route>
           <Route path="/home" element={<HomePage pageNumber = {0} />}></Route>
+          <Route path="/home-teachers" element={<HomePage pageNumber = {1} />}></Route>
+          <Route path="/adicionar" element={<HomePage pageNumber = {2} />}></Route>
         </Routes>
       </BrowserRouter>
     </UserContext.Provider>
