@@ -122,7 +122,7 @@ export default function HomePage({ pageNumber }) {
     }
 
     function DisciplineTabs(){
-        if (testsName.length > 0 && type === 0){
+        if (testsTeachers.length > 0 && pageNumber === 0){
             return (
                 testsName.map(name => {
                     return(
@@ -138,13 +138,26 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
-        else if (testsName.length > 0 && type === 1){
-            <h2>oi</h2>
+        else if (testsTeachers.length > 0 && pageNumber === 1){
+            return (
+                testsTeachers.map(name => {
+                    return(
+                        <Tab1>
+                            <button onClick={() => {handleClick(name)}}>
+                                <h1>{name}</h1>
+                            </button>
+                            <TabContent className='hidden'>
+                                <TermsTabs name = {name}/>
+                            </TabContent>
+                        </Tab1>
+                    )
+                })
+            )
         }
     }
     
     function TermsTabs({ name }){
-        if (testsList.length > 0 && type === 0){
+        if (testsList.length > 0 && pageNumber === 0){
             let termsArray = [];
             for(let i =0; i<testsList.length;i++){
                 if(testsList[i].disciplineName[0].name === name){
@@ -166,10 +179,34 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
+        else if (testsList.length > 0 && pageNumber === 1){
+            let termsArray = [];
+            for(let i =0; i<testsList.length;i++){
+                if(testsList[i].complement[0].teacher === name){
+                    if(!termsArray.includes(testsList[i].disciplineName[0].name)){
+                        termsArray.push(testsList[i].disciplineName[0].name);
+                    }
+                }
+            }
+            return (
+                termsArray.map(test => {
+                    return(
+                        <>
+                            <br />
+                            <h2>{test}</h2>
+                            <br />
+                            <TabContent>
+                                <CategoriesTabs name = {name} semester = {test}/>
+                            </TabContent>
+                        </>
+                    )                   
+                })
+            )
+        }
     }
 
     function CategoriesTabs({ name, semester }){
-        if (testsList.length > 0 && type === 0){
+        if (testsList.length > 0 && pageNumber === 0){
             let categoriesArray = [];
             for(let i =0; i<testsList.length;i++){
                 if(testsList[i].disciplineName[0].name === name){
@@ -191,10 +228,34 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
+        else if (testsList.length > 0 && pageNumber === 1){
+            let categoriesArray = [];
+            for(let i =0; i<testsList.length;i++){
+                if(testsList[i].complement[0].teacher === name){
+                    if(testsList[i].disciplineName[0].name === semester){
+                        if(!categoriesArray.includes(testsList[i].complement[0].category)){
+                            categoriesArray.push(testsList[i].complement[0].category);
+                        }
+                    }
+                }
+            }
+            return (
+                categoriesArray.map(test => {
+                    return(
+                        <>
+                            <h2>{test}</h2>
+                            <TabContent>
+                                <TestsTabs name = {name} semester = {semester} category ={test} />
+                            </TabContent>
+                        </>
+                    )                   
+                })
+            )
+        }
     }
 
     function TestsTabs({ name, semester, category }){
-        if (testsList.length > 0 && type === 0){
+        if (testsList.length > 0 && pageNumber === 0){
             let testsNameArray = [];
             for(let i =0; i<testsList.length;i++){
                 if(testsList[i].disciplineName[0].name === name){
@@ -210,6 +271,27 @@ export default function HomePage({ pageNumber }) {
                     return(
                         <>
                             <a href = {`${test.url}`}><h3>{test.teacher} - {test.name}</h3></a>
+                        </>
+                    )                   
+                })
+            )
+        }
+        else if (testsList.length > 0 && pageNumber === 1){
+            let testsNameArray = [];
+            for(let i =0; i<testsList.length;i++){
+                if(testsList[i].complement[0].teacher === name){
+                    if(testsList[i].disciplineName[0].name === semester){
+                        if(testsList[i].complement[0].category === category){
+                            testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, semester: testsList[i].complement[0].semester})
+                        }
+                    }
+                }
+            }
+            return (
+                testsNameArray.map(test => {
+                    return(
+                        <>
+                            <a href = {`${test.url}`}><h3>{test.semester} - {test.name}</h3></a>
                         </>
                     )                   
                 })
