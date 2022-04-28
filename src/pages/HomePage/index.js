@@ -10,6 +10,8 @@ export default function HomePage({ pageNumber }) {
 
     const navigate = useNavigate();
 
+    const [type, setType] = React.useState(0);
+
     let button0Background = "";
     let button0H2Color = "";
     let button1Background = "";
@@ -47,12 +49,25 @@ export default function HomePage({ pageNumber }) {
         button0Background = "white";
         button0H2Color = "#1976D2";
 
-        searchFor = "algo";
+        searchFor = "";
+    }
+    else if(pageNumber === 3){
+        button2Background = "white";
+        button2H2Color = "#1976D2";
+        button1Background = "white";
+        button1H2Color = "#1976D2";
+        button0Background = "white";
+        button0H2Color = "#1976D2";
+
+        if (type === 0){
+            searchFor = "disciplina";
+        }
+        else if (type === 1){
+            searchFor = "professor";
+        }
     }
 
     const [search, setSearch] = React.useState('');
-
-    const [type, setType] = React.useState(0);
 
     const [testsList, setTestsList] = React.useState([]);
     const [testsName, setTestsNames] = React.useState([]);
@@ -94,22 +109,13 @@ export default function HomePage({ pageNumber }) {
 
     async function handleSearch(e){
         e.preventDefault();
-        try{
-            const response = await axios.post('http://localhost:5000/search', {
-                type: type,
-                search: search
-                }, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
-            const data = response.data;
-            if(data){
-            }
+        if(searchFor === "disciplina"){
+            setType(0);
         }
-        catch(e){
-            alert('Erro!');
+        else if (searchFor === "professor"){
+            setType(1);
         }
+        navigate("/search");
     }
 
     async function handleClick(name){
@@ -122,7 +128,7 @@ export default function HomePage({ pageNumber }) {
     }
 
     function DisciplineTabs(){
-        if (testsTeachers.length > 0 && pageNumber === 0){
+        if (testsList.length > 0 && pageNumber === 0){
             return (
                 testsName.map(name => {
                     return(
@@ -138,7 +144,7 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
-        else if (testsTeachers.length > 0 && pageNumber === 1){
+        else if (testsList.length > 0 && pageNumber === 1){
             return (
                 testsTeachers.map(name => {
                     return(
@@ -153,6 +159,44 @@ export default function HomePage({ pageNumber }) {
                     )
                 })
             )
+        }
+        else if (testsList.length > 0 && pageNumber === 3){
+            if(type === 0){
+                return (
+                    testsName.map(name => {
+                        if(name === search){
+                            return(
+                                <Tab1>
+                                    <button onClick={() => {handleClick(name)}}>
+                                        <h1>{name}</h1>
+                                    </button>
+                                    <TabContent className='hidden'>
+                                        <TermsTabs name = {name}/>
+                                    </TabContent>
+                                </Tab1>
+                            )
+                        }
+                    })
+                )
+            }
+            else if (type === 1){
+                return (
+                    testsTeachers.map(name => {
+                        if(name === search){
+                            return(
+                                <Tab1>
+                                    <button onClick={() => {handleClick(name)}}>
+                                        <h1>{name}</h1>
+                                    </button>
+                                    <TabContent className='hidden'>
+                                        <TermsTabs name = {name}/>
+                                    </TabContent>
+                                </Tab1>
+                            )
+                        }
+                    })
+                )
+            }
         }
     }
     
@@ -203,6 +247,54 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
+        else if (testsList.length > 0 && pageNumber === 3){
+            if(type === 0){
+                let termsArray = [];
+                for(let i =0; i<testsList.length;i++){
+                    if(testsList[i].disciplineName[0].name === name){
+                        if(!termsArray.includes(testsList[i].complement[0].semester)){
+                            termsArray.push(testsList[i].complement[0].semester);
+                        }
+                    }
+                }
+                return (
+                    termsArray.map(test => {
+                        return(
+                            <>
+                                <h2>{test}</h2>
+                                <TabContent>
+                                    <CategoriesTabs name = {name} semester = {test}/>
+                                </TabContent>
+                            </>
+                        )                   
+                    })
+                )
+            }
+            else if (type === 1){
+                let termsArray = [];
+                for(let i =0; i<testsList.length;i++){
+                    if(testsList[i].complement[0].teacher === name){
+                        if(!termsArray.includes(testsList[i].disciplineName[0].name)){
+                            termsArray.push(testsList[i].disciplineName[0].name);
+                        }
+                    }
+                }
+                return (
+                    termsArray.map(test => {
+                        return(
+                            <>
+                                <br />
+                                <h2>{test}</h2>
+                                <br />
+                                <TabContent>
+                                    <CategoriesTabs name = {name} semester = {test}/>
+                                </TabContent>
+                            </>
+                        )                   
+                    })
+                )
+            }    
+        }
     }
 
     function CategoriesTabs({ name, semester }){
@@ -252,6 +344,54 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
+        if (testsList.length > 0 && pageNumber === 3){
+            if(type === 0){
+                let categoriesArray = [];
+                for(let i =0; i<testsList.length;i++){
+                    if(testsList[i].disciplineName[0].name === name){
+                        if(!categoriesArray.includes(testsList[i].complement[0].category)){
+                            categoriesArray.push(testsList[i].complement[0].category);
+                        }
+                    }
+                }
+                return (
+                    categoriesArray.map(test => {
+                        return(
+                            <>
+                                <h2>{test}</h2>
+                                <TabContent>
+                                    <TestsTabs name = {name} semester = {semester} category ={test} />
+                                </TabContent>
+                            </>
+                        )                   
+                    })
+                )
+            }
+            else if (type === 1){
+                let categoriesArray = [];
+                for(let i =0; i<testsList.length;i++){
+                    if(testsList[i].complement[0].teacher === name){
+                        if(testsList[i].disciplineName[0].name === semester){
+                            if(!categoriesArray.includes(testsList[i].complement[0].category)){
+                                categoriesArray.push(testsList[i].complement[0].category);
+                            }
+                        }
+                    }
+                }
+                return (
+                    categoriesArray.map(test => {
+                        return(
+                            <>
+                                <h2>{test}</h2>
+                                <TabContent>
+                                    <TestsTabs name = {name} semester = {semester} category ={test} />
+                                </TabContent>
+                            </>
+                        )                   
+                    })
+                )
+            }
+        }
     }
 
     function TestsTabs({ name, semester, category }){
@@ -297,6 +437,50 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
+        else if (testsList.length > 0 && pageNumber === 3){
+            if(type === 0){
+                let testsNameArray = [];
+                for(let i =0; i<testsList.length;i++){
+                    if(testsList[i].disciplineName[0].name === name){
+                        if(testsList[i].complement[0].semester === semester){
+                            if(testsList[i].complement[0].category === category){
+                                testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, teacher: testsList[i].complement[0].teacher})
+                            }
+                        }
+                    }
+                }
+                return (
+                    testsNameArray.map(test => {
+                        return(
+                            <>
+                                <a href = {`${test.url}`}><h3>{test.teacher} - {test.name}</h3></a>
+                            </>
+                        )                   
+                    })
+                )
+            }
+            else if (type === 1){
+                let testsNameArray = [];
+                for(let i =0; i<testsList.length;i++){
+                    if(testsList[i].complement[0].teacher === name){
+                        if(testsList[i].disciplineName[0].name === semester){
+                            if(testsList[i].complement[0].category === category){
+                                testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, semester: testsList[i].complement[0].semester})
+                            }
+                        }
+                    }
+                }
+                return (
+                    testsNameArray.map(test => {
+                        return(
+                            <>
+                                <a href = {`${test.url}`}><h3>{test.semester} - {test.name}</h3></a>
+                            </>
+                        )                   
+                    })
+                )
+            }
+        }
     }
 
     return (
@@ -307,17 +491,17 @@ export default function HomePage({ pageNumber }) {
             </Form>
             <Separator />
             <Buttons>
-                <Button0 onClick={() => {navigate("/home")}} button0Background ={button0Background} button0H2Color = {button0H2Color}>
+                <Button0 onClick={() => {navigate("/home"); setSearch("")}} button0Background ={button0Background} button0H2Color = {button0H2Color}>
                     <h2>
                         DISCIPLINAS
                     </h2>
                 </Button0>
-                <Button1 onClick={() => {navigate("/home-teachers")}} button1Background ={button1Background} button1H2Color = {button1H2Color}>
+                <Button1 onClick={() => {navigate("/home-teachers"); setSearch("")}} button1Background ={button1Background} button1H2Color = {button1H2Color}>
                     <h2>
                         PESSOA INSTRUTORA
                     </h2>
                 </Button1>
-                <Button2 onClick={() => {navigate("/adicionar")}}button2Background ={button2Background} button2H2Color = {button2H2Color}>
+                <Button2 onClick={() => {navigate("/register")}}button2Background ={button2Background} button2H2Color = {button2H2Color}>
                     <h2>
                         ADICIONAR
                     </h2>
