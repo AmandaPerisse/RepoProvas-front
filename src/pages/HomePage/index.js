@@ -118,12 +118,34 @@ export default function HomePage({ pageNumber }) {
         navigate("/search");
     }
 
-    async function handleClick(name){
+    async function handleClickTab(name){
         const tab = document.querySelectorAll(".tabs");
         for(let i = 0; i< tab[0].children.length;i++){
             if (tab[0].children[i].children[0].children[0].innerText === name){
                 tab[0].children[i].children[1].classList.toggle("hidden");
             }
+        }
+    }
+
+    async function handleClickTest({ url }){
+        try{
+            const fetchData = async () => {
+                const promise = await axios.put('http://localhost:5000/setViews', {
+                    url: url,
+                    }, {
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                });
+                const { data } = promise;
+                if(data){
+                    
+                }
+            };
+            fetchData();
+        }
+        catch(e){
+            alert('Falha.');
         }
     }
 
@@ -133,7 +155,7 @@ export default function HomePage({ pageNumber }) {
                 testsName.map(name => {
                     return(
                         <Tab1>
-                            <button onClick={() => {handleClick(name)}}>
+                            <button onClick={() => {handleClickTab(name)}}>
                                 <h1>{name}</h1>
                             </button>
                             <TabContent className='hidden'>
@@ -149,7 +171,7 @@ export default function HomePage({ pageNumber }) {
                 testsTeachers.map(name => {
                     return(
                         <Tab1>
-                            <button onClick={() => {handleClick(name)}}>
+                            <button onClick={() => {handleClickTab(name)}}>
                                 <h1>{name}</h1>
                             </button>
                             <TabContent className='hidden'>
@@ -167,7 +189,7 @@ export default function HomePage({ pageNumber }) {
                         if(name === search){
                             return(
                                 <Tab1>
-                                    <button onClick={() => {handleClick(name)}}>
+                                    <button onClick={() => {handleClickTab(name)}}>
                                         <h1>{name}</h1>
                                     </button>
                                     <TabContent className='hidden'>
@@ -185,7 +207,7 @@ export default function HomePage({ pageNumber }) {
                         if(name === search){
                             return(
                                 <Tab1>
-                                    <button onClick={() => {handleClick(name)}}>
+                                    <button onClick={() => {handleClickTab(name)}}>
                                         <h1>{name}</h1>
                                     </button>
                                     <TabContent className='hidden'>
@@ -302,8 +324,10 @@ export default function HomePage({ pageNumber }) {
             let categoriesArray = [];
             for(let i =0; i<testsList.length;i++){
                 if(testsList[i].disciplineName[0].name === name){
-                    if(!categoriesArray.includes(testsList[i].complement[0].category)){
-                        categoriesArray.push(testsList[i].complement[0].category);
+                    if(testsList[i].complement[0].semester === semester){
+                        if(!categoriesArray.includes(testsList[i].complement[0].category)){
+                            categoriesArray.push(testsList[i].complement[0].category);
+                        }
                     }
                 }
             }
@@ -344,7 +368,7 @@ export default function HomePage({ pageNumber }) {
                 })
             )
         }
-        if (testsList.length > 0 && pageNumber === 3){
+        else if (testsList.length > 0 && pageNumber === 3){
             if(type === 0){
                 let categoriesArray = [];
                 for(let i =0; i<testsList.length;i++){
@@ -401,7 +425,7 @@ export default function HomePage({ pageNumber }) {
                 if(testsList[i].disciplineName[0].name === name){
                     if(testsList[i].complement[0].semester === semester){
                         if(testsList[i].complement[0].category === category){
-                            testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, teacher: testsList[i].complement[0].teacher})
+                            testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, views: testsList[i].complement[0].views, teacher: testsList[i].complement[0].teacher})
                         }
                     }
                 }
@@ -409,9 +433,10 @@ export default function HomePage({ pageNumber }) {
             return (
                 testsNameArray.map(test => {
                     return(
-                        <>
-                            <a href = {`${test.url}`}><h3>{test.teacher} - {test.name}</h3></a>
-                        </>
+                        <Flex>
+                            <a href = {`${test.url}`} onClick={() => {handleClickTest(test.url)}}><h3>{test.teacher} - {test.name}</h3></a>
+                            <h3>views: {test.views}</h3>
+                        </Flex>
                     )                   
                 })
             )
@@ -422,7 +447,7 @@ export default function HomePage({ pageNumber }) {
                 if(testsList[i].complement[0].teacher === name){
                     if(testsList[i].disciplineName[0].name === semester){
                         if(testsList[i].complement[0].category === category){
-                            testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, semester: testsList[i].complement[0].semester})
+                            testsNameArray.push({views: testsList[i].complement[0].views, name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, semester: testsList[i].complement[0].semester})
                         }
                     }
                 }
@@ -430,9 +455,10 @@ export default function HomePage({ pageNumber }) {
             return (
                 testsNameArray.map(test => {
                     return(
-                        <>
+                        <Flex>
                             <a href = {`${test.url}`}><h3>{test.semester} - {test.name}</h3></a>
-                        </>
+                            <h3>views: {test.views}</h3>
+                        </Flex>
                     )                   
                 })
             )
@@ -444,7 +470,7 @@ export default function HomePage({ pageNumber }) {
                     if(testsList[i].disciplineName[0].name === name){
                         if(testsList[i].complement[0].semester === semester){
                             if(testsList[i].complement[0].category === category){
-                                testsNameArray.push({name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, teacher: testsList[i].complement[0].teacher})
+                                testsNameArray.push({views: testsList[i].complement[0].views, name: testsList[i].complement[0].name, url: testsList[i].complement[0].url, teacher: testsList[i].complement[0].teacher})
                             }
                         }
                     }
@@ -452,9 +478,10 @@ export default function HomePage({ pageNumber }) {
                 return (
                     testsNameArray.map(test => {
                         return(
-                            <>
+                            <Flex>
                                 <a href = {`${test.url}`}><h3>{test.teacher} - {test.name}</h3></a>
-                            </>
+                                <h3>views: {test.views}</h3>
+                            </Flex>
                         )                   
                     })
                 )
@@ -501,7 +528,7 @@ export default function HomePage({ pageNumber }) {
                         PESSOA INSTRUTORA
                     </h2>
                 </Button1>
-                <Button2 onClick={() => {navigate("/register")}}button2Background ={button2Background} button2H2Color = {button2H2Color}>
+                <Button2 onClick={() => {navigate("/register"); setSearch("")}}button2Background ={button2Background} button2H2Color = {button2H2Color}>
                     <h2>
                         ADICIONAR
                     </h2>
@@ -592,4 +619,9 @@ const Tab1 = styled.div`
 `;
 const TabContent = styled.div`
     padding: 0px 10px;
+`;
+const Flex = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 `;
