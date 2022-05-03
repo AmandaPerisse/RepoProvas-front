@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router';
 import { Link } from "react-router-dom";
 import UserContext from '../../providers/UserContext';
 import Header from '../../components/Header/Header.js';
+import RegisterForm from './RegisterForm.js';
 
 export default function HomePage({ pageNumber }) {
 
@@ -12,111 +13,59 @@ export default function HomePage({ pageNumber }) {
 
     const [type, setType] = React.useState(0);
 
-    let button0Background = "";
-    let button0H2Color = "";
-    let button1Background = "";
-    let button1H2Color = "";
-    let button2Background = "";
-    let button2H2Color = "";
-
-    let searchFor;
-
-    if(pageNumber === 0){
-        button0Background = "#1976D2";
-        button0H2Color = "white";
-        button1Background = "white";
-        button1H2Color = "#1976D2";
-        button2Background = "white";
-        button2H2Color = "#1976D2";
-
-        searchFor = "disciplina";
-    }
-    else if(pageNumber === 1){
-        button1Background = "#1976D2";
-        button1H2Color = "white";
-        button0Background = "white";
-        button0H2Color = "#1976D2";
-        button2Background = "white";
-        button2H2Color = "#1976D2";
-
-        searchFor = "professor";
-    }
-    else if(pageNumber === 2){
-        button2Background = "#1976D2";
-        button2H2Color = "white";
-        button1Background = "white";
-        button1H2Color = "#1976D2";
-        button0Background = "white";
-        button0H2Color = "#1976D2";
-
-        searchFor = "";
-    }
-    else if(pageNumber === 3){
-        button2Background = "white";
-        button2H2Color = "#1976D2";
-        button1Background = "white";
-        button1H2Color = "#1976D2";
-        button0Background = "white";
-        button0H2Color = "#1976D2";
-
-        if (type === 0){
-            searchFor = "disciplina";
-        }
-        else if (type === 1){
-            searchFor = "professor";
-        }
-    }
-
     const [search, setSearch] = React.useState('');
+
+    const [dataList, setDataList] = React.useState([]);
 
     const [testsList, setTestsList] = React.useState([]);
     const [testsName, setTestsNames] = React.useState([]);
     const [testsTeachers, setTestsTeachers] = React.useState([]);
-    let arrayTestsNames = [];
     let arrayTestsTeachers = [];
+    let arrayTestsNames = [];
 
     const {token, setToken} = useContext(UserContext);
 
+    const fetchTests = async () => {
+        const promise = await axios.get('http://localhost:5000/tests-disciplines', {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        const { data } = promise;
+        if(data){
+            setTestsList(data);
+        }
+        for(let i =0; i<data.length;i++){
+            if(!arrayTestsNames.includes(data[i].disciplineName[0].name)){
+                arrayTestsNames.push(data[i].disciplineName[0].name);
+            }
+            if(!arrayTestsTeachers.includes(data[i].complement[0].teacher)){
+                arrayTestsTeachers.push(data[i].complement[0].teacher);
+            }
+        }
+        setTestsNames(arrayTestsNames);
+        setTestsTeachers(arrayTestsTeachers);
+    };
+
+    const fetchData = async () => {
+        const promise = await axios.get('http://localhost:5000/register', {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        const { data } = promise;
+        setDataList(data);
+    };
+
     useEffect(() => {
         try{
-            const fetchData = async () => {
-                const promise = await axios.get('http://localhost:5000/tests-disciplines', {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
-                const { data } = promise;
-                if(data){
-                    setTestsList(data);
-                }
-                for(let i =0; i<data.length;i++){
-                    if(!arrayTestsNames.includes(data[i].disciplineName[0].name)){
-                        arrayTestsNames.push(data[i].disciplineName[0].name);
-                    }
-                    if(!arrayTestsTeachers.includes(data[i].complement[0].teacher)){
-                        arrayTestsTeachers.push(data[i].complement[0].teacher);
-                    }
-                }
-                setTestsNames(arrayTestsNames);
-                setTestsTeachers(arrayTestsTeachers);
-            };
+            fetchTests();
             fetchData();
         }
         catch(e){
             alert('Falha.');
         }
     }, []);
-
-    async function handleSearch(e){
-        e.preventDefault();
-        if(searchFor === "disciplina"){
-            setType(0);
-        }
-        else if (searchFor === "professor"){
-            setType(1);
-        }
-        navigate("/search");
-    }
 
     async function handleClickTab(name){
         const tab = document.querySelectorAll(".tabs");
@@ -127,9 +76,9 @@ export default function HomePage({ pageNumber }) {
         }
     }
 
-    async function handleClickTest({ url }){
+    async function handleClickTest(url, setSearch){
         try{
-            const fetchData = async () => {
+            const updateViews = async () => {
                 const promise = await axios.put('http://localhost:5000/setViews', {
                     url: url,
                     }, {
@@ -137,12 +86,9 @@ export default function HomePage({ pageNumber }) {
                             "Authorization": `Bearer ${token}`
                         }
                 });
-                const { data } = promise;
-                if(data){
-                    
-                }
             };
-            fetchData();
+            updateViews();
+            fetchTests();
         }
         catch(e){
             alert('Falha.');
@@ -181,6 +127,11 @@ export default function HomePage({ pageNumber }) {
                     )
                 })
             )
+        }
+        else if(pageNumber === 2){
+            return(
+                <RegisterForm fetchTests ={fetchTests} dataList = {dataList} testsList = {testsList} />
+            );
         }
         else if (testsList.length > 0 && pageNumber === 3){
             if(type === 0){
@@ -434,7 +385,7 @@ export default function HomePage({ pageNumber }) {
                 testsNameArray.map(test => {
                     return(
                         <Flex>
-                            <a href = {`${test.url}`} onClick={() => {handleClickTest(test.url)}}><h3>{test.teacher} - {test.name}</h3></a>
+                            <Link to = {`${test.url}`} onClick={() => {handleClickTest(test.url)}}><h3>{test.teacher} - {test.name}</h3></Link>
                             <h3>views: {test.views}</h3>
                         </Flex>
                     )                   
@@ -512,28 +463,7 @@ export default function HomePage({ pageNumber }) {
 
     return (
         <Content>
-            <Header />
-            <Form onSubmit = {handleSearch}>
-                <input type="text" onChange = {(e) => setSearch(e.target.value)} value = {search} placeholder={`Pesquisar por ${searchFor}`}/>
-            </Form>
-            <Separator />
-            <Buttons>
-                <Button0 onClick={() => {navigate("/home"); setSearch("")}} button0Background ={button0Background} button0H2Color = {button0H2Color}>
-                    <h2>
-                        DISCIPLINAS
-                    </h2>
-                </Button0>
-                <Button1 onClick={() => {navigate("/home-teachers"); setSearch("")}} button1Background ={button1Background} button1H2Color = {button1H2Color}>
-                    <h2>
-                        PESSOA INSTRUTORA
-                    </h2>
-                </Button1>
-                <Button2 onClick={() => {navigate("/register"); setSearch("")}}button2Background ={button2Background} button2H2Color = {button2H2Color}>
-                    <h2>
-                        ADICIONAR
-                    </h2>
-                </Button2>
-            </Buttons>
+            <Header pageNumber = {pageNumber} search = {search} setSearch ={setSearch} setType = {setType} type = {type}/>
             <div className = "tabs">
                 <DisciplineTabs/>
             </div>
@@ -542,64 +472,6 @@ export default function HomePage({ pageNumber }) {
 };
 const Content = styled.div`
     padding: 20px 50px;
-`;
-const Form = styled.form`
-    margin-top: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    input{
-        width: 70%;
-    }
-`;
-const Separator = styled.div`
-    width: 100%;
-    background-color: #c9c9c9;
-    height: 1px;
-    margin-top: 30px;
-`;
-const Buttons = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 50px 0px;
-`;
-const Button0 = styled.button`
-    text-align: center;
-    width: 33%;
-    padding: 15px;
-    border: 1px solid #1976D2;
-    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px rgba(0, 0, 0, 0.14), 0px 1px 5px rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    background-color: ${props => props.button0Background};
-    h2{
-        color: ${props => props.button0H2Color};
-    }
-`;
-const Button1 = styled.button`
-    text-align: center;
-    width: 33%;
-    padding: 15px;
-    border: 1px solid #1976D2;
-    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px rgba(0, 0, 0, 0.14), 0px 1px 5px rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    background-color: ${props => props.button1Background};
-    h2{
-        color: ${props => props.button1H2Color};
-    }
-`;
-const Button2 = styled.button`
-    text-align: center;
-    width: 33%;
-    padding: 15px;
-    border: 1px solid #1976D2;
-    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px rgba(0, 0, 0, 0.14), 0px 1px 5px rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    background-color: ${props => props.button2Background};
-    h2{
-        color: ${props => props.button2H2Color};
-    }
 `;
 const Tab1 = styled.div`
     background: #FFFFFF;
